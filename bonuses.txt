@@ -1,0 +1,100 @@
+BONUS CHALLENGE FORM
+--------------------
+
+For each bonus challenge you have implemented, please replace the sentence "We are not entitled to this bonus."
+with a short description of:
+
+1. How it was implemented in your code
+2. Where it was used (in which class methods).
+3. How you tested that it is working correctly.
+
+--------------------
+
+1. Fully supporting all configuration fields and avoiding the use of magic numbers
+
+1) used the config files' fields instead of numeric values.
+2) used in:
+Table:
+    Constructor
+    placeCard
+    removeCard
+Player
+    point
+    penalty 
+    CreateArtificialIntelligence
+Dealer 
+    Constructor
+    timerloop
+    sleepUntilWokenOrTimeout
+    updateTimerDisplay
+    placeCards
+3) we changed the values in the config.java file and ran the program
+--------------------
+
+2. Terminating all threads (that you created) gracefully and in reverse order to the order they were created in.
+
+1) we made sure we notified everyone that was waiting, then went through the players in reverse order and ordered them to terminate,
+ waiting for each one as we go. We made sure each player thread waited for its ai counterpart to finish in case it had one
+
+2) 
+Dealer
+    exitGame
+    run
+Player
+    run
+
+3) We ran our program, printing when each thread is created and when it terminates, and we made sure
+it happened in the right order
+--------------------
+
+3. Handling the config.turnTimeoutMillis value as follows:
+config.turnTimeoutMillis < 0: display nothing.
+config.turnTimeoutMillis = 0: display a timer since the last action (reshuffle or set collected).
+Note: in modes without a countdown timer the dealer must ensure there is always at least one legal set on the table.
+
+1) We changed multiple functions to account for each type of game, based on config.turnTimeoutMillis
+in updateTimerDisplay we accounted for each case, making it countdown when >0, count elapsed when = 0
+and dont display and timer when <0. also if its >0 , we made it update the display more frequently when in warning time
+in sleepUntilWokenOrTimeout we made the thread wait only 1 second if it needed to update the display in >=0
+and when <0 it didn't need to wake up until it has been told to
+we also made sure that after we place cards, if there were no legal sets on the table when <=0, we reshuffled
+the cards and placed again
+
+2)
+Dealer  
+    timerloop
+    placeCardsOnTable
+    sleepUntilWokenOrTimeout
+    updateTimerDisplay
+
+3) we ran multiple games of each type, with different parameters
+
+--------------------
+
+4. Making sure that the threads do not wake up unless some actual job needs to be done (e.g., a value needs to be
+changed on the display, key input needs to be handled, etc.) and the only threads created by you are:
+1 thread per player + 1 additional thread for non-human players.
+
+1) when a players action queue was full we told the ai generator to wait until it wasnt
+    when a player had no actions in its action queue we told it to wait until it did
+    when the gamemode was <0, we made sure the dealer only woke up if someone asked it to check
+    since it didnt need to wake up to update the timer. otherwise, it had to wake up to update the time
+    when a player is waiting for the dealer to check his proposed set, he is waiting for the dealer to 
+    notify its done checking.
+    when starting a new playerThread, the dealer is waiting for the thread to notify it its done initiallizing
+    When <0, when x is pressed, the dealer is in waiting so the program doesnt close approprietly. We couldnt change xbuttonPressed since its in main 
+    so we couldnt make it interrupt it, so that scenario is not accounted for
+
+2) 
+dealer
+    timerloop
+    run
+    sleepUntilWokenOrTimeout
+Player
+    run
+    attempt
+    createArtificialIntelligence (in aiThread's run)
+    keyPressed
+
+3) we ran multiple tests with each thread notifying via printing when it starts waiting, and 
+when it wakes up
